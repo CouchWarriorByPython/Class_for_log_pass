@@ -4,7 +4,7 @@ import psycopg2
 
 
 class Registration:
-    """Класс для регистрации пользователя"""
+    """Class for user registration"""
     def __init__(self, login, password, check_pass):
         self.login = login
         self.password = password
@@ -32,7 +32,7 @@ class Registration:
 
 
 class ConnectToDB:
-    """Класс для подкючения к Базе данных"""
+    """A class for connecting to the database"""
     def __init__(self, host='localhost', user='postgres', password='123321', db_name='Users_data'):
         self.host = host
         self.user = user
@@ -68,11 +68,6 @@ class ConnectToDB:
         except Exception as ex:
             print('[INFO] Error while working with PostgresSQL', ex)
 
-        finally:
-            if self.connection:
-                self.connection.close()
-                print('[INFO] PostgresSQL connection closed')
-
     def check_data_to_db(self, login, password):
         try:
             login_hash = hashlib.sha256(login.encode()).hexdigest()
@@ -90,10 +85,9 @@ class ConnectToDB:
         except Exception as ex:
             print('[INFO] Error while working with PostgresSQL', ex)
 
-        finally:
-            if self.connection:
-                self.connection.close()
-                print('[INFO] PostgresSQL connection closed')
+    def connection_close(self):
+        self.connection.close()
+        print('[INFO] PostgresSQL connection closed')
 
 
 name = input('Enter your name: ')
