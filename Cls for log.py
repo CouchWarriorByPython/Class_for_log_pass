@@ -10,15 +10,16 @@ class Registration:
         self.password = password
         self.check_pass = check_pass
         self.__len_password()
-        self.__hash_password()
+        self.__hash_password_and_login()
         self.__check_password()
 
     def __len_password(self):
         if len(self.password) < 8:
             raise ValueError("The password is too short")
 
-    def __hash_password(self):
+    def __hash_password_and_login(self):
         self.salt = uuid.uuid4().hex
+        self.login = hashlib.sha256(self.login.encode()).hexdigest()
         self.password = hashlib.sha256(self.salt.encode() + self.password.encode()).hexdigest() + ':' + self.salt
 
     def __check_password(self):
@@ -72,6 +73,28 @@ class ConnectToDB:
                 self.connection.close()
                 print('[INFO] PostgresSQL connection closed')
 
+    def check_data_to_db(self, login, password):
+        try:
+            login_hash = hashlib.sha256(login.encode()).hexdigest()
+            with self.connection.cursor() as cursor:
+                cursor.execute(
+                    f"SELECT salt FROM users WHERE login = '{login_hash}';"
+                )
+                get_salt = cursor.fetchone()
+                password_hash = hashlib.sha256(''.join(get_salt).encode() + password.encode()).hexdigest()
+                cursor.execute(
+                    f"SELECT salt FROM users WHERE login = '{login_hash}' AND hash_pass = '{password_hash}';"
+                )
+            print('[INFO] Congratulations, you have entered')
+
+        except Exception as ex:
+            print('[INFO] Error while working with PostgresSQL', ex)
+
+        finally:
+            if self.connection:
+                self.connection.close()
+                print('[INFO] PostgresSQL connection closed')
+
 
 name = input('Enter your name: ')
 password_user = input('Enter your password: ')
@@ -79,3 +102,8 @@ check_conf_pass = input('Enter the password again to confirm: ')
 check = Registration(name, password_user, check_conf_pass)
 db = ConnectToDB()
 db.write_data_to_db(check.data)
+aut = input('Enter your name: ')
+pass_aut = input('Enter your password: ')
+db = ConnectToDB()
+db.check_data_to_db(aut, pass_aut)
+
